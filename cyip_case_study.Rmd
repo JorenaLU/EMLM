@@ -25,6 +25,27 @@ resp_var <- DF$Severity
 #### Distribution of severity relative to covariates
 Checking for distribution of severity/bias in severity between groups
 ```{r}
+
+with(DF, tapply(Severity, list(Visit),
+                mean, na.rm = TRUE))
+
+with(DF, tapply(Severity, list(Visit, sex),
+            mean, na.rm = TRUE))
+
+with(DF, tapply(Severity, list(Visit, SNP),
+                mean, na.rm = TRUE))
+
+with(DF, tapply(Severity, list(Visit),
+                var, na.rm = TRUE))
+
+with(DF, tapply(Severity, list(Visit, sex),
+                var, na.rm = TRUE))
+
+with(DF, tapply(Severity, list(Visit, SNP),
+                var, na.rm = TRUE))
+
+
+
 bar_width <- 0.7
 
 sex_labs <- c("Male", "Female")
@@ -266,6 +287,21 @@ For `glmer`, Laplace approximation is not usable as it does not behave well with
 # for the Hessian for increased interaction terms and/or increasing the number of 
 # random effects. glmer also ran into gradient errors unless a high 
 # (~1e5) number of iterations was run --> not very computationally efficient
+model.0 <- glmer(
+  Severity ~ Visit * Period + Vist * sex + Visit * SNP + Visit * scaled_age + (1|id),
+  data = DF, 
+  family = "binomial",
+  control = glmerControl(optimizer = "bobyqa"),
+  nAGQ = 15) 
+
+# a penalized quasi-likelihood model runs into similar issues 
+library(MASS)
+model.pql <- glmmPQL(
+  Severity ~ Visit * Period + Visit * sex + Visit * SNP + Visit * scaled_age,
+  random = ~1 | id,
+  family = binomial,
+  data = DF)
+
 
 # Skipping checks with Laplace due to computational issues with binary variables
 
